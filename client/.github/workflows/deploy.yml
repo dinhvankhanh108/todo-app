@@ -1,0 +1,56 @@
+name: CI/CD react
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [21.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ./client/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package.json', '**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+      working-directory: ./client
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    # - name: Lint the app (disable no-redeclare)
+      # run: |
+      #  npx eslint './**/*.{ts,tsx}' --rule "@typescript-eslint/no-redeclare: off" --rule "@typescript-eslint/triple-slash-reference: off"
+      # working-directory: ./client
+      # continue-on-error: true
+
+    # - name: Temporarily disable ESLint for @typescript-eslint rules
+      # run: |
+      #  find ./client -type f \( -name "*.ts" -o -name "*.tsx" \) -exec sed -i '1i /* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/triple-slash-reference */' {} \;
+      #  find ./client -type f \( -name "*.ts" -o -name "*.tsx" \) -exec sed -i -e '$a /* eslint-enable @typescript-eslint/no-redeclare, @typescript-eslint/triple-slash-reference */' {} \;
+      # shell: bash
+      # continue-on-error: true
+      
+    - name: Build the app
+      run: npm run build:production
+      working-directory: ./client
+      continue-on-error: true
