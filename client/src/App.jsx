@@ -16,9 +16,10 @@ function App() {
           <Header />
           <main className="pt-4">
             <Routes>
-              <Route path='/' element={<TodoPage />} />
+              <Route path='/' element={<ListPage />} />
+              <Route path='/students' element={<ListPage />} />
+              <Route path='/todo' element={<TodoPage />} />
               <Route path='/example' element={<ExamplePage />} />
-              <Route path='/list' element={<ListPage />} />
             </Routes>
           </main>
         </div>
